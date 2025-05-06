@@ -88,7 +88,7 @@ func (s *SetsManagerMock) OrderSet(photosetId string, photoIds []string) error {
 	return nil
 }
 
-func TestSortSetByNameAscend(t *testing.T) {
+func getMocks() (SetsManagerMock, PhotoRetreiverMock) {
 	set := SetsManagerMock{
 		Name: "myset",
 		Id:   "111",
@@ -107,16 +107,20 @@ func TestSortSetByNameAscend(t *testing.T) {
 			},
 		},
 		DatesTaken: map[string]string{
-			"1": "2006-01-02 15:04:05",
+			"1": "2006-01-01 15:04:05",
 			"2": "2006-01-02 15:04:05",
-			"3": "2006-01-02 15:04:05",
+			"3": "2006-01-03 15:04:05",
 		},
 	}
 	pr := PhotoRetreiverMock{
 		SetsManager: set,
 	}
-	runSortSetCmd(&set, pr, "myset", "title", false)
+	return set, pr
+}
 
+func TestSortSetByNameAscend(t *testing.T) {
+	set, pr := getMocks()
+	runSortSetCmd(&set, pr, "myset", "title", false)
 	if set.Photos[0].Id != "1" {
 		t.Errorf("Expected photo 1 to be first")
 	}
@@ -124,6 +128,48 @@ func TestSortSetByNameAscend(t *testing.T) {
 		t.Errorf("Expected photo 2 to be second")
 	}
 	if set.Photos[2].Id != "3" {
+		t.Errorf("Expected photo 3 to be last")
+	}
+}
+
+func TestSortSetByNameDescend(t *testing.T) {
+	set, pr := getMocks()
+	runSortSetCmd(&set, pr, "myset", "title", true)
+	if set.Photos[2].Id != "1" {
+		t.Errorf("Expected photo 1 to be first")
+	}
+	if set.Photos[1].Id != "2" {
+		t.Errorf("Expected photo 2 to be second")
+	}
+	if set.Photos[0].Id != "3" {
+		t.Errorf("Expected photo 3 to be last")
+	}
+}
+
+func TestSortSetByDateAscend(t *testing.T) {
+	set, pr := getMocks()
+	runSortSetCmd(&set, pr, "myset", "date", false)
+	if set.Photos[0].Id != "1" {
+		t.Errorf("Expected photo 1 to be first")
+	}
+	if set.Photos[1].Id != "2" {
+		t.Errorf("Expected photo 2 to be second")
+	}
+	if set.Photos[2].Id != "3" {
+		t.Errorf("Expected photo 3 to be last")
+	}
+}
+
+func TestSortSetByDateDescend(t *testing.T) {
+	set, pr := getMocks()
+	runSortSetCmd(&set, pr, "myset", "date", true)
+	if set.Photos[2].Id != "1" {
+		t.Errorf("Expected photo 1 to be first")
+	}
+	if set.Photos[1].Id != "2" {
+		t.Errorf("Expected photo 2 to be second")
+	}
+	if set.Photos[0].Id != "3" {
 		t.Errorf("Expected photo 3 to be last")
 	}
 }
