@@ -115,6 +115,11 @@ type SetsManagerMock struct {
 	sets map[string][]string
 }
 
+func (s *SetsManagerMock) OrderSet(photosetId string, photoIds []string) error {
+	fmt.Println("Not implemented")
+	return nil
+}
+
 func (s *SetsManagerMock) ListUserSets(userid string) (total int, photosetitems []photosets.Photoset, error error) {
 	sets := []photosets.Photoset{}
 	for setName, _ := range s.sets {

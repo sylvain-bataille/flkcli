@@ -21,6 +21,7 @@ type SetsLister interface {
 type SetsEditor interface {
 	AddToPhotoSet(photoId, photoSetId string) error
 	CreateSet(title, description, primaryPhotoId string) (string, error)
+	OrderSet(photosetId string, photoIds []string) error
 }
 
 type SetsManager interface {
@@ -118,4 +119,15 @@ func (c SetsClient) CreateSet(title, description, primaryPhotoId string) (string
 	}
 
 	return response.Set.Id, nil
+}
+
+func (c SetsClient) OrderSet(photosetId string, photoIds []string) error {
+	if len(photoIds) < 1 {
+		return fmt.Errorf("at least 1 id must be specified to order a set")
+	}
+	_, err := photosets.ReorderPhotos(c.flickrClient, photosetId, photoIds[0], photoIds)
+	if err != nil {
+		return fmt.Errorf("failed to create set: %w", err)
+	}
+	return nil
 }

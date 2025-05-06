@@ -12,7 +12,7 @@ import (
 	"gopkg.in/masci/flickr.v3/photos"
 )
 
-func runSortSetCmd(sm flickrclient.SetsManager, setName string, sortOption string, descending bool) {
+func runSortSetCmd(sm flickrclient.SetsManager, pr flickrclient.PhotoInfoRetriever, setName string, sortOption string, descending bool) {
 	set, err := sm.GetSetByName(setName, "")
 	if err != nil {
 		fmt.Println("Error getting set by name:", err)
@@ -23,17 +23,13 @@ func runSortSetCmd(sm flickrclient.SetsManager, setName string, sortOption strin
 		fmt.Println("Error getting photos in set:", err)
 		return
 	}
-	photoRetreiver, err := flickrclient.GetPhotoClient()
-	if err != nil {
-		fmt.Println("Error getting photo client:", err)
-		return
-	}
+
 	photos := make([]photos.PhotoInfo, 0)
 	for _, photo := range photoset {
 		// Sort the photos based on some criteria
 		// For example, sort by title
 		fmt.Printf("Photo ID: %s, Title: %s\n", photo.Id, photo.Title)
-		photoInfo, err := photoRetreiver.GetPhotoInfo(photo.Id)
+		photoInfo, err := pr.GetPhotoInfo(photo.Id)
 		if err != nil {
 			fmt.Println("Error getting photo info:", err)
 			return
@@ -41,9 +37,12 @@ func runSortSetCmd(sm flickrclient.SetsManager, setName string, sortOption strin
 		photos = append(photos, photoInfo)
 	}
 	photos = sortPhotos(photos, sortOption, descending)
+	photosOrder := []string{}
 	for _, photo := range photos {
 		fmt.Printf("Photo ID: %s, Title: %s, Date: %s\n", photo.Id, photo.Title, photo.Dates.Taken)
+		photosOrder = append(photosOrder, photo.Id)
 	}
+	sm.OrderSet(set, photosOrder)
 
 }
 
@@ -104,7 +103,12 @@ var SortSetCmd = &cobra.Command{
 			cmd.Println("Error getting sets manager:", err)
 			return
 		}
-		runSortSetCmd(setsManager, setName, sortOrder, descending)
+		photoRetreiver, err := flickrclient.GetPhotoClient()
+		if err != nil {
+			fmt.Println("Error getting photo client:", err)
+			return
+		}
+		runSortSetCmd(setsManager, photoRetreiver, setName, sortOrder, descending)
 		cmd.Println("Photos sorted successfully.")
 	},
 }
