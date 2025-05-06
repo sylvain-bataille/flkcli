@@ -12,16 +12,14 @@ import (
 	"gopkg.in/masci/flickr.v3/photos"
 )
 
-func runSortSetCmd(sm flickrclient.SetsManager, pr flickrclient.PhotoInfoRetriever, setName string, sortOption string, descending bool) {
+func runSortSetCmd(sm flickrclient.SetsManager, pr flickrclient.PhotoInfoRetriever, setName string, sortOption string, descending bool) error {
 	set, err := sm.GetSetByName(setName, "")
 	if err != nil {
-		fmt.Println("Error getting set by name:", err)
-		return
+		return fmt.Errorf("cannot resolve photoset id of %s: %e", setName, err)
 	}
 	photoset, err := sm.GetPhotosInSet(set, "")
 	if err != nil {
-		fmt.Println("Error getting photos in set:", err)
-		return
+		return fmt.Errorf("error getting photos in set %s: %e", setName, err)
 	}
 
 	photos := make([]photos.PhotoInfo, 0)
@@ -31,8 +29,7 @@ func runSortSetCmd(sm flickrclient.SetsManager, pr flickrclient.PhotoInfoRetriev
 		fmt.Printf("Photo ID: %s, Title: %s\n", photo.Id, photo.Title)
 		photoInfo, err := pr.GetPhotoInfo(photo.Id)
 		if err != nil {
-			fmt.Println("Error getting photo info:", err)
-			return
+			return fmt.Errorf("error getting photo info of %s: %e", photo.Title, err)
 		}
 		photos = append(photos, photoInfo)
 	}
@@ -43,7 +40,7 @@ func runSortSetCmd(sm flickrclient.SetsManager, pr flickrclient.PhotoInfoRetriev
 		photosOrder = append(photosOrder, photo.Id)
 	}
 	sm.OrderSet(set, photosOrder)
-
+	return nil
 }
 
 func sortPhotos(photosList []photos.PhotoInfo, o string, descending bool) []photos.PhotoInfo {
@@ -90,25 +87,29 @@ var SortSetCmd = &cobra.Command{
 		setName := args[0]
 		sortOrder, err := cmd.Flags().GetString("sort")
 		if err != nil {
-			cmd.Println("Error getting sort order:", err)
+			cmd.Println("error getting sort order:", err)
 			return
 		}
 		descending, err := cmd.Flags().GetBool("descending")
 		if err != nil {
-			cmd.Println("Error getting descending flag:", err)
+			cmd.Println("error getting descending flag:", err)
 			return
 		}
 		setsManager, err := flickrclient.GetSetsManager()
 		if err != nil {
-			cmd.Println("Error getting sets manager:", err)
+			cmd.Println("error getting sets manager:", err)
 			return
 		}
 		photoRetreiver, err := flickrclient.GetPhotoClient()
 		if err != nil {
-			fmt.Println("Error getting photo client:", err)
+			fmt.Println("error getting photo client:", err)
 			return
 		}
-		runSortSetCmd(setsManager, photoRetreiver, setName, sortOrder, descending)
+		err = runSortSetCmd(setsManager, photoRetreiver, setName, sortOrder, descending)
+		if err != nil {
+			fmt.Println("error sorting photos:", err)
+			return
+		}
 		cmd.Println("Photos sorted successfully.")
 	},
 }
