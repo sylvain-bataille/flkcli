@@ -27,6 +27,7 @@ func runSortSetCmd(sm flickrclient.SetsManager, pr flickrclient.PhotoInfoRetriev
 		// Sort the photos based on some criteria
 		// For example, sort by title
 		fmt.Printf("Photo ID: %s, Title: %s\n", photo.Id, photo.Title)
+		//TODO replace by loading bar, optmize photo info loading
 		photoInfo, err := pr.GetPhotoInfo(photo.Id)
 		if err != nil {
 			return fmt.Errorf("error getting photo info of %s: %e", photo.Title, err)
@@ -36,7 +37,6 @@ func runSortSetCmd(sm flickrclient.SetsManager, pr flickrclient.PhotoInfoRetriev
 	photos = sortPhotos(photos, sortOption, descending)
 	photosOrder := []string{}
 	for _, photo := range photos {
-		fmt.Printf("Photo ID: %s, Title: %s, Date: %s\n", photo.Id, photo.Title, photo.Dates.Taken)
 		photosOrder = append(photosOrder, photo.Id)
 	}
 	sm.OrderSet(set, photosOrder)
