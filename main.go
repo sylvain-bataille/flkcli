@@ -4,6 +4,7 @@ import (
 	"flkcli/cmd"
 	_ "flkcli/cmd/list"
 	_ "flkcli/cmd/login"
+	_ "flkcli/cmd/organize"
 	_ "flkcli/cmd/setup"
 	_ "flkcli/cmd/upload"
 )
