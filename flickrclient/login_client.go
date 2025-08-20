@@ -87,7 +87,7 @@ func oauthLogin(b oauthFlickrHandler, cr CodeReader) (string, string, error) {
 }
 
 func GetLoginHandler() (LoginHandler, error) {
-	c, err := GetFlickrClient()
+	c, err := GetFlickrClientLogin()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get flickr client: %w", err)
 	}
