@@ -21,6 +21,16 @@ func GetFlickrClient() (*flickr.FlickrClient, error) {
 	return client, nil
 }
 
+func GetFlickrClientLogin() (*flickr.FlickrClient, error) {
+	api, err := ValidateAndReadConfigurationLogin()
+	if err != nil {
+		return nil, err
+	}
+	// Create a new Flickr client
+	client := flickr.NewFlickrClient(api.Key, api.Secret)
+	return client, nil
+}
+
 // ValidateConfiguration function use the config package to validate that the api key and secret are set and the oauth token and secret are set
 func ValidateAndReadConfiguration() (*config.APIConfig, *config.TokenConfig, error) {
 	// Get the API config
@@ -58,4 +68,28 @@ Please use flkcli login first
 	}
 
 	return apiConfig, tokenConfig, nil
+}
+
+// ValidateConfiguration function use the config package to validate that the api key and secret are set and the oauth token and secret are set
+func ValidateAndReadConfigurationLogin() (*config.APIConfig, error) {
+	// Get the API config
+	c, err := config.GetUserProfileConfig()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user profile config")
+	}
+	apiConfig, err := c.GetAPIConfig()
+	if err != nil {
+		return nil, fmt.Errorf(`failed to get API config: %w
+Please use flkcli setup first
+`, err)
+	}
+
+	// Check if the API key and secret are set
+	if apiConfig.Key == "" || apiConfig.Secret == "" {
+		return nil, errors.New(`API key and secret are not set
+Please use flkcli setup first
+`)
+	}
+
+	return apiConfig, nil
 }
